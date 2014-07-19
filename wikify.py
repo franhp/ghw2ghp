@@ -2,6 +2,7 @@ import os
 import errno
 import shutil
 import imp
+import distutils.core
 
 from jinja2 import Environment, FileSystemLoader
 import markdown
@@ -120,27 +121,35 @@ def convert_md_to_html(source, output):
         file_path = os.path.join(root, name)
         with open(get_or_create_web_path(root, name, source_dir=source, output_dir=output), 'ab') as f:
             # Using the section template render the markdown file into a file
-            print '* Generating html file for [%s]' % file_path
+            print '* Generating html file for [%s] ...' % file_path
             template = env.get_template(get_section_template(root, source))
             f.write(template.render(process_file(file_path, general_plugins)))
             f.close()
 
 
 # Delete the previously generated files
+source = os.path.join(os.getcwd(), 'wiki')
+dest_web = os.path.join(os.getcwd(), 'www')
+
 try:
-    shutil.rmtree(os.path.join(os.getcwd(), 'www'))
+    shutil.rmtree(dest_web) #and shutil.rmtree(source)
 except OSError:
     print 'First time run!'
 
 # Download the wiki from github
-#git.Git().clone("git://gitorious.org/git-python/mainline.git").wiki
+repo = git.Repo(source)
+#repo.git.clone("git://git@github.com:franhp/wiki.git")
 
 # Convert the site into html in www
+print '* Generating HTML files ...'
+repo.git.checkout('master')
 convert_md_to_html('wiki', 'www')
 
-# Commit it into gh-pages branch
-#git.Git().checkout('gh-pages')
-git.add
-git.commit
-git checkout master
-
+print "* Committing new webpage to gh-pages ..."
+repo.git.checkout('gh-pages')
+# TODO should delete contents of gh-pages before putting the new
+distutils.dir_util.copy_tree(dest_web + '/', source)
+repo.git.add('.')
+repo.git.commit(m='Shit happened')
+repo.git.push('origin', 'gh-pages')
+repo.git.checkout('master')
