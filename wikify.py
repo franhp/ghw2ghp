@@ -3,11 +3,10 @@ import errno
 import shutil
 import imp
 import commands
+import codecs
 
 from jinja2 import Environment, FileSystemLoader
 import markdown
-import git
-
 
 import plugins
 
@@ -18,7 +17,7 @@ def process_file(filename, general_plugins):
     """
 
     # Load file
-    content = open(filename).readlines()
+    content = codecs.open(filename, encoding='utf-8').readlines()
 
     # Find title
     if content[0].startswith('# '):
@@ -124,7 +123,7 @@ def convert_md_to_html(source, output):
             # Using the section template render the markdown file into a file
             print '* Generating html file for [%s] ...' % file_path
             template = env.get_template(get_section_template(root, source))
-            f.write(template.render(process_file(file_path, general_plugins)))
+            f.write(template.render(process_file(file_path, general_plugins)).encode('utf-8'))
             f.close()
 
 
@@ -139,18 +138,17 @@ except OSError:
 # Download the wiki from github
 if os.path.isdir(source):
     shutil.rmtree(source)
-    os.mkdir(source)
-    print '* Downloading wiki from github ...'
-    repo = git.Repo.init(source)
-    origin = repo.create_remote('origin', 'git://git@github.com:franhp/wiki.git')
-    origin.fetch()
-    origin.pull(origin.refs[0].remote_head)
+os.mkdir(source)
+print '* Downloading wiki from github ...'
+status, output = commands.getstatusoutput('git clone %s %s' % ('git@github.com:franhp/wiki.git', source))
+if status is not 0:
+    raise Exception('There was an error downloading the repository!\n%s' % output)
 
 # Convert the site into html in www
 print '* Generating HTML files ...'
 convert_md_to_html('wiki', 'www')
 
-## TODO runserver y no directo a subir
+# TODO runserver y no directo a subir
 print "* Committing new webpage to gh-pages ..."
 status, output = commands.getstatusoutput('cd %s && ghp-import %s ' % (source, dest_web))
 if status is not 0:
