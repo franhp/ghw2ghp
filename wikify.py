@@ -4,6 +4,7 @@ import shutil
 import imp
 import commands
 import codecs
+import distutils.core
 
 from jinja2 import Environment, FileSystemLoader
 import markdown
@@ -121,7 +122,7 @@ def convert_md_to_html(source, output):
         file_path = os.path.join(root, name)
         with open(get_or_create_web_path(root, name, source_dir=source, output_dir=output), 'ab') as f:
             # Using the section template render the markdown file into a file
-            print '* Generating html file for [%s] ...' % file_path
+            print '** Generating html file for [%s] ...' % file_path
             template = env.get_template(get_section_template(root, source))
             f.write(template.render(process_file(file_path, general_plugins)).encode('utf-8'))
             f.close()
@@ -148,9 +149,14 @@ if status is not 0:
 print '* Generating HTML files ...'
 convert_md_to_html('wiki', 'www')
 
+# Copy all other important files into the dest_web
+print '* Copying other important files ...'
+distutils.dir_util.copy_tree(os.path.join(source, 'static'), os.path.join(dest_web, 'static'))
+shutil.copy(os.path.join(source, 'CNAME'), os.path.join(dest_web, 'CNAME'))
+
 # TODO runserver y no directo a subir
 print "* Committing new webpage to gh-pages ..."
-status, output = commands.getstatusoutput('cd %s && ghp-import %s ' % (source, dest_web))
+status, output = commands.getstatusoutput('cd %s && ghp-import -p %s ' % (source, dest_web))
 if status is not 0:
     raise Exception('There was an error during upload of gh-pages!\n%s' % output)
 else:
