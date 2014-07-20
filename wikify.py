@@ -2,11 +2,12 @@ import os
 import errno
 import shutil
 import imp
-import distutils.core
+import commands
 
 from jinja2 import Environment, FileSystemLoader
 import markdown
 import git
+
 
 import plugins
 
@@ -130,26 +131,29 @@ def convert_md_to_html(source, output):
 # Delete the previously generated files
 source = os.path.join(os.getcwd(), 'wiki')
 dest_web = os.path.join(os.getcwd(), 'www')
-
 try:
-    shutil.rmtree(dest_web) #and shutil.rmtree(source)
+    shutil.rmtree(dest_web)
 except OSError:
-    print 'First time run!'
+    pass
 
 # Download the wiki from github
-repo = git.Repo(source)
-#repo.git.clone("git://git@github.com:franhp/wiki.git")
+if os.path.isdir(source):
+    shutil.rmtree(source)
+    os.mkdir(source)
+    print '* Downloading wiki from github ...'
+    repo = git.Repo.init(source)
+    origin = repo.create_remote('origin', 'git://git@github.com:franhp/wiki.git')
+    origin.fetch()
+    origin.pull(origin.refs[0].remote_head)
 
 # Convert the site into html in www
 print '* Generating HTML files ...'
-repo.git.checkout('master')
 convert_md_to_html('wiki', 'www')
 
+## TODO runserver y no directo a subir
 print "* Committing new webpage to gh-pages ..."
-repo.git.checkout('gh-pages')
-# TODO should delete contents of gh-pages before putting the new
-distutils.dir_util.copy_tree(dest_web + '/', source)
-repo.git.add('.')
-repo.git.commit(m='Shit happened')
-repo.git.push('origin', 'gh-pages')
-repo.git.checkout('master')
+status, output = commands.getstatusoutput('cd %s && ghp-import %s ' % (source, dest_web))
+if status is not 0:
+    raise Exception('There was an error during upload of gh-pages!\n%s' % output)
+else:
+    print 'Success!!'

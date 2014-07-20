@@ -2,3 +2,4 @@ Jinja2
 markdown
 Pygments
 gitpython
+ghp-import
