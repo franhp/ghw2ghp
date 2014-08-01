@@ -3,3 +3,4 @@ markdown
 Pygments
 gitpython
 ghp-import
+watchdog
