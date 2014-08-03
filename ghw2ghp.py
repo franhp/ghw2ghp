@@ -73,15 +73,20 @@ if True: # TODO actually do the check
     observer.schedule(FileWatcher(), path=website.source, recursive=True)
     observer.start()
 
-    try:
-        print 'Starting web server http://localhost:8080/www/ ...'
-        Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-        httpd = SocketServer.TCPServer(('', 8080), Handler)
-        webbrowser.open('http://localhost:8080/www/')
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        httpd.shutdown()
-        observer.stop()
+    print 'Starting web server http://localhost:8080/www/ ...'
+    def serve_forever(port_number):
+        try:
+            Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+            httpd = SocketServer.TCPServer(('', port_number), Handler)
+            webbrowser.open('http://localhost:' + str(port_number) + '/www/')
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print 'Closing server ...'
+            httpd.shutdown()
+            observer.stop()
+        except Exception:
+            return serve_forever(port_number + 1)
+    serve_forever(8080)
 
     observer.join()
 
