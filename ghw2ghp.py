@@ -14,7 +14,7 @@ from libs.page import Page
 from libs.website import Website
 
 
-website = Website(os.path.join(os.getcwd(), 'wiki'), os.path.join(os.getcwd(), 'www'))
+website = Website(os.path.join(os.getcwd(), 'wiki'), os.path.join(os.getcwd(), 'www'), 'http://localhost:8080/www')
 
 
 class FileWatcher(PatternMatchingEventHandler):

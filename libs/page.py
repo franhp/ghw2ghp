@@ -7,11 +7,9 @@ import markdown
 from jinja2 import Environment, FileSystemLoader
 
 from libs.plugins import WikiPlugins
-from libs.website import Website
 
 
 class Page():
-
     def __init__(self, page_path, website):
         self.origin_page_path = page_path
         self.website = website
@@ -54,7 +52,9 @@ class Page():
         related_pages = []
         for md_file in os.listdir(os.path.split(self.origin_page_path)[0]):
             if md_file.endswith('.md'):
-                related_pages.append({'url': self.category_name + '/' + md_file.replace('.md', '.html'),
+                section = '' if self.category_name == '' else self.category_name + '/'
+                url = self.website.url + '/' + section + md_file.replace('.md', '.html')
+                related_pages.append({'url': url,
                                       'name': md_file.replace('.md', '')})
         return related_pages
 
