@@ -25,7 +25,7 @@ class FileWatcher(PatternMatchingEventHandler):
             p = Page(event.src_path, website)
             p.save_html()
         else:
-            generate_site()
+            website.generate_site()
 
 
 # Delete the previously generated files
@@ -48,23 +48,7 @@ else:
         raise Exception('There was an error downloading the repository!\n%s' % output)
 
 
-def generate_site():
-    # Convert the site into html in www
-    print '* Generating all HTML files ...'
-
-    for root, dirs, files in os.walk(website.source):
-            for name in files:
-                if name.endswith('.md'):
-                    page = Page(os.path.join(root, name), website)
-                    page.save_html()
-
-    # Copy all other important files into the dest_web
-    print('* Copying other important files ...')
-    distutils.dir_util.copy_tree(os.path.join(website.source, 'static'), os.path.join(website.dest_web, 'static'))
-    shutil.copy(os.path.join(website.source, 'CNAME'), os.path.join(website.dest_web, 'CNAME'))
-
-
-generate_site()
+website.generate_site()
 
 if True: # TODO actually do the check
 

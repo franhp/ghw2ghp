@@ -136,10 +136,22 @@ class Page():
             for k, v in self.website.website_plugins.items():
                 page[k] = v
 
-
             # Actually write the file
             f.write(template.render(page).encode('utf-8'))
             f.close()
+
+        # Ensure index.html exists
+        section_index = os.path.join(os.path.split(file_path)[0], 'index.html')
+        if not os.path.isfile(section_index):
+            with open(section_index, 'wb') as f:
+                print '** Generating extra index.html ...'
+                template = env.get_template(self.template)
+                del page['markdown']
+                page['title'] = 'Index of ' + self.category_name
+                f.write(template.render(page).encode('utf-8'))
+                f.close()
+
+
 
     def run_page_plugins(self):
         tags = {}
