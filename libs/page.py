@@ -91,7 +91,8 @@ class Page():
         """
         Converts markdown path into the path of the html file and creates it if necessary
         """
-        web_path, filename = os.path.split(self.dest_root_path + self.origin_page_path.replace(self.source_root_path,  ''))
+        web_path, filename = os.path.split(
+            self.dest_root_path + self.origin_page_path.replace(self.source_root_path, ''))
 
         if not os.path.exists(web_path):
             # mkdir -p
