@@ -5,7 +5,7 @@ class WikiPlugin(WikiPlugins):
     tag_name = 'livejs'
     active = True
 
-    def extra_tag(self, context):
+    def website_tag(self, website_context):
         return '<script type="text/javascript" src="http://livejs.com/live.js"></script>'
 
 

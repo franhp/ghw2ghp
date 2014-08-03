@@ -7,19 +7,23 @@ import markdown
 from jinja2 import Environment, FileSystemLoader
 
 from libs.plugins import WikiPlugins
+from libs.website import Website
 
 
 class Page():
 
-    def __init__(self, page_path, source_path, dest_path):
+    def __init__(self, page_path, website):
         self.origin_page_path = page_path
-        self.source_root_path = source_path
-        self.dest_root_path = dest_path
+        self.website = website
+        self.source_root_path = website.source
+        self.dest_root_path = website.dest_web
 
         self.all_content = codecs.open(page_path, encoding='utf-8').readlines()
         self.title = self.get_title()
         self.converted_html = self.get_converted_markdown()
         self.template = self.get_template()
+        self.category_name = self.get_category()
+        self.related_pages = self.get_related_pages()
 
     def get_title(self):
         """
@@ -32,6 +36,27 @@ class Page():
             title = os.path.split(self.origin_page_path)[1].replace('.md', '')
 
         return title
+
+    def get_category(self):
+        """
+        Finds category of page based on the directory it is in
+        """
+        relative_path = self.origin_page_path.replace(self.source_root_path, '')
+        if relative_path != '/' + os.path.split(self.origin_page_path)[1]:
+            return relative_path.split(os.sep)[1]
+        else:
+            return ''
+
+    def get_related_pages(self):
+        """
+        Finds pages in the same category
+        """
+        related_pages = []
+        for md_file in os.listdir(os.path.split(self.origin_page_path)[0]):
+            if md_file.endswith('.md'):
+                related_pages.append({'url': self.category_name + '/' + md_file.replace('.md', '.html'),
+                                      'name': md_file.replace('.md', '')})
+        return related_pages
 
     def get_converted_markdown(self):
         """
@@ -93,22 +118,36 @@ class Page():
 
             page = {
                 'title': self.title,
-                'markdown': self.converted_html
+                'markdown': self.converted_html,
+                'related_pages': self.related_pages,
+                'current_page': os.path.split(self.origin_page_path)[1].replace('.md', ''),
+                'current_section': self.category_name
             }
 
             # Add in the plugins tags
-            for k, v in self.run_plugins().items():
+            for k, v in self.run_page_plugins().items():
                 page[k] = v
+
+            # And then add the website ones
+            for k, v in self.website.tags.items():
+                page[k] = v
+
+            for k, v in self.website.website_plugins.items():
+                page[k] = v
+
 
             # Actually write the file
             f.write(template.render(page).encode('utf-8'))
             f.close()
 
-    def run_plugins(self):
+    def run_page_plugins(self):
         tags = {}
         for plugin_path in WikiPlugins.modules:
             c = imp.load_source(os.path.split(plugin_path)[1].replace('.py', ''), plugin_path)
             p = c.WikiPlugin()
             if p.active:
-                tags[p.tag_name] = p.extra_tag(self)
+                try:
+                    tags[p.tag_name] = p.page_tag(self)
+                except NotImplementedError:
+                    pass
         return tags

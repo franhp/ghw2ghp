@@ -10,7 +10,10 @@ class WikiPlugins:
     def __init__(self):
         pass
 
-    def extra_tag(self, context):
+    def page_tag(self, context):
+        raise NotImplementedError()
+
+    def website_tag(self, context):
         raise NotImplementedError()
 
     def parse(self, context):
