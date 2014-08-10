@@ -76,9 +76,12 @@ class Page():
 
         # Check if the md files follows protocol
         if self.all_content[0].startswith('# '):
-            content = md.convert(''.join(self.all_content[1:]))
+            file_content = ''.join(self.all_content[1:])
         else:
-            content = md.convert(''.join(self.all_content))
+            file_content = ''.join(self.all_content)
+
+        md_content = self.run_parser_plugins(file_content)
+        content = md.convert(md_content)
         return content
 
     def get_template(self):
@@ -151,7 +154,17 @@ class Page():
                 f.write(template.render(page).encode('utf-8'))
                 f.close()
 
-
+    def run_parser_plugins(self, page_content):
+        content = ''
+        for plugin_path in WikiPlugins.modules:
+            c = imp.load_source(os.path.split(plugin_path)[1].replace('.py', ''), plugin_path)
+            p = c.WikiPlugin()
+            if p.active:
+                try:
+                    content = p.parse(page_content)
+                except NotImplementedError:
+                    pass
+        return content if content is not '' else page_content
 
     def run_page_plugins(self):
         tags = {}
