@@ -1,10 +1,7 @@
 import os
 import commands
 import shutil
-import distutils.core
-
-import SimpleHTTPServer
-import SocketServer
+import time
 import webbrowser
 
 from watchdog.observers import Observer
@@ -14,7 +11,7 @@ from libs.page import Page
 from libs.website import Website
 
 
-website = Website(os.path.join(os.getcwd(), 'wiki'), os.path.join(os.getcwd(), 'www'), 'http://localhost:8080/www')
+website = Website(os.path.join(os.getcwd(), 'wiki'), os.path.join(os.getcwd(), 'www'), 'http://www.dev')
 
 
 class FileWatcher(PatternMatchingEventHandler):
@@ -57,20 +54,13 @@ if True: # TODO actually do the check
     observer.schedule(FileWatcher(), path=website.source, recursive=True)
     observer.start()
 
-    print 'Starting web server http://localhost:8080/www/ ...'
-    def serve_forever(port_number):
-        try:
-            Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-            httpd = SocketServer.TCPServer(('', port_number), Handler)
-            webbrowser.open('http://localhost:' + str(port_number) + '/www/')
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print 'Closing server ...'
-            httpd.shutdown()
-            observer.stop()
-        except Exception:
-            return serve_forever(port_number + 1)
-    serve_forever(8080)
+    try:
+        webbrowser.open('http://www.dev/')
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+
 
     observer.join()
 
