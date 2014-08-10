@@ -4,3 +4,4 @@ Pygments
 gitpython
 ghp-import
 watchdog
+python-dateutil

@@ -109,11 +109,20 @@ class Page():
 
         return os.path.join(web_path, filename.replace('.md', '.html'))
 
+
+
     def save_html(self):
         """
         Saves the HTML code to a file
         """
         env = Environment(loader=FileSystemLoader(os.path.join(self.source_root_path, 'templates')))
+
+        # TODO Plugins for jinja filters too!!!
+        def dateformat(value, format='%d-%m-%y'):
+            return value.strftime(format)
+
+        env.filters['dateformat'] = dateformat
+
         file_path = self.get_or_create_web_path()
         with open(file_path, 'wb') as f:
             # Using the section template render the markdown file into a file
