@@ -14,6 +14,10 @@ class WikiPlugin(WikiPlugins):
     def website_tag(self, website_context):
         response = []
 
+        # Avoid when creating
+        if not os.path.exists(website_context.source):
+            return response
+
         # Search all files in the last 10 commits
         repo = git.Repo(website_context.source)
         commits = repo.commits(max_count=10)
